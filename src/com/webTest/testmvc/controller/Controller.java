@@ -135,7 +135,7 @@ public class Controller extends HttpServlet {
 				userService = UserService.getInstance();
 				userService.editUser(user);
 				
-				view = "user/edit-result";
+				view = "user/edit-result";	// test
 				break;
 			case "/user-delete.do":
 				idx = request.getParameter("u_idx");
