@@ -1,9 +1,8 @@
 package com.webTest.testmvc.vo;
 
-import com.webTest.testmvc.service.*;
+import com.webTest.testmvc.service.BoardService;
 
-public class Pagination {
-	int userCount;
+public class Pagination_B {
 	int page;
 	int pageNum;
 	int startPage;
@@ -11,32 +10,27 @@ public class Pagination {
 	int lastPage;
 	int prevPage;
 	int nextPage;
+	int boardCount;
 	public static final int pageUnit=5;
-	public static final int perPage=3;
-	UserService userService=null;
+	public static final int perPage=7;
+	BoardService boardService = null;
 	
-	public Pagination() {
+	public Pagination_B() {
 		
 	}
 	
-	public Pagination(int page) {
+	public Pagination_B(int page) {
 		this.page = page;
-		userService = UserService.getInstance();
-		userCount = userService.getUsersCount();
 		startPage = ((page-1)/pageUnit) * pageUnit + 1;
-		lastPage = (int)Math.ceil(userCount / (float)perPage);
+		boardService = BoardService.getInstance();
+		boardCount = boardService.getBoardCount();		
+		lastPage = (int)Math.ceil(boardCount / (float)perPage);
 		endPage = startPage + pageUnit-1;
 		endPage = endPage < lastPage ? endPage : lastPage;
 		prevPage=startPage-1;
 		nextPage = (startPage+pageUnit);
 	}
 
-	public int getUserCount() {
-		return userCount;
-	}
-	public void setUserCount(int userCount) {
-		this.userCount = userCount;
-	}
 	public int getPage() {
 		return page;
 	}

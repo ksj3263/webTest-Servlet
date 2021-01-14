@@ -1,7 +1,9 @@
 package com.webTest.testmvc.controller;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -11,8 +13,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.webTest.testmvc.service.BoardService;
+import com.webTest.testmvc.service.ReplyService;
 import com.webTest.testmvc.service.UserService;
+import com.webTest.testmvc.vo.Board;
 import com.webTest.testmvc.vo.Pagination;
+import com.webTest.testmvc.vo.Pagination_B;
+import com.webTest.testmvc.vo.Reply;
 import com.webTest.testmvc.vo.User;
 
 @WebServlet("*.do")
@@ -33,10 +40,22 @@ public class Controller extends HttpServlet {
 		String idx = null;
 		String pw = null;
 		String id = null;
+		String reqPage;
+		Date today = new Date();
+		SimpleDateFormat format;
 
 		UserService userService = null;
 		User user = null;
 		HttpSession session = null;
+		
+		Board board = null;
+		BoardService boardService = null;
+		ArrayList<Board> b_list = null;
+		Pagination_B pgb = null;
+		
+		Reply reply = null;
+		ReplyService replyService = null;
+		ArrayList<Reply> r_list = null;
 		
 		int page = 1;
 		response.setContentType("text/html; charset=utf-8");
@@ -66,13 +85,16 @@ public class Controller extends HttpServlet {
 					view = "user/login-fail";
 				}
 				break;
+			case "/user-main.do":
+				view = "user/login-result";
+				break;
 			case "/logout.do":
 				session = request.getSession();
 				session.invalidate();
 				view = "user/login";
 				break;
 			case "/user-list.do":
-				String reqPage = request.getParameter("page");
+				reqPage = request.getParameter("page");
 				if(reqPage!=null)
 					page=Integer.parseInt(reqPage);
 				
@@ -114,6 +136,12 @@ public class Controller extends HttpServlet {
 				break;
 			case "/user-edit.do":
 				idx = request.getParameter("u_idx");
+				
+				if(!checkAuthority(request, Integer.parseInt(idx))) {
+					view = "user/access-denied-authority";
+					break;
+				}
+				
 				userService = UserService.getInstance();
 				user = userService.findUser(idx);
 								
@@ -139,6 +167,12 @@ public class Controller extends HttpServlet {
 				break;
 			case "/user-delete.do":
 				idx = request.getParameter("u_idx");
+				
+				if(!checkAuthority(request, Integer.parseInt(idx))) {
+					view = "user/access-denied-authority";
+					break;
+				}
+				
 				userService = UserService.getInstance();
 				userService.deleteUser(idx);
 				
@@ -155,6 +189,216 @@ public class Controller extends HttpServlet {
 				
 				view = null;
 				break;
+			case "/board.do":
+				reqPage = request.getParameter("page");
+				if(reqPage!=null)
+					page=Integer.parseInt(reqPage);
+				
+				boardService = BoardService.getInstance();
+				b_list = boardService.getBoards(page);
+				pgb = new Pagination_B(page);
+				
+				request.setAttribute("list", b_list);
+				request.setAttribute("pagination", pgb);	
+							
+				view = "user/board";
+				break;
+				
+			case "/board-write.do":
+				view = "user/board-write";
+				break;
+				
+			case "/board-write-result.do":
+				board = new Board();
+				board.setB_title(request.getParameter("title"));
+				board.setB_content(request.getParameter("content"));
+				
+				session = request.getSession();
+				user = (User)session.getAttribute("user");
+				board.setB_writer(user.getU_id());
+				board.setU_idx(user.getU_idx());
+								
+				format = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
+				board.setB_date(format.format(today));
+				
+				boardService = BoardService.getInstance();
+				boardService.writeBoard(board);
+								
+				view = "user/board-result";
+				break;
+				
+			case "/board-detail.do":
+				idx = request.getParameter("b_idx");
+				boardService = BoardService.getInstance();
+				board = boardService.findBoard(idx);				
+				request.setAttribute("board", board);
+				
+				replyService = ReplyService.getInstance();
+				r_list = replyService.getReply(board.getB_idx());
+				request.setAttribute("list", r_list);
+				view = "user/board-detail";
+				break;
+				
+			case "/board-edit.do":
+				idx = request.getParameter("b_idx");				
+				
+				boardService = BoardService.getInstance();
+				board = boardService.findBoard(idx);				
+
+				if(!checkAuthority(request, board.getU_idx())) {
+					view = "user/access-denied-authority";
+					break;
+				}
+								
+				request.setAttribute("board", board);				
+				view = "user/board-edit";
+				break;
+				
+			case "/board-edit-process.do":
+				board = new Board();
+				board.setB_idx(Integer.parseInt(request.getParameter("edit_idx")));
+				board.setB_title(request.getParameter("edit_title"));
+				board.setB_content(request.getParameter("edit_content"));
+				format = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
+				board.setB_date(format.format(today));
+				
+				boardService = BoardService.getInstance();
+				boardService.editBoard(board);
+				
+				view = "user/board-edit-result";
+				break;
+				
+			case "/board-reply.do":
+				reply = new Reply();
+				reply.setR_content(request.getParameter("content"));
+				format = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
+				reply.setR_date(format.format(today));
+				reply.setB_idx(Integer.parseInt(request.getParameter("b_idx")));
+								
+				session = request.getSession();
+				user = (User)session.getAttribute("user");
+				reply.setR_writer(user.getU_id());
+				reply.setU_idx(user.getU_idx());
+				
+				replyService = ReplyService.getInstance();
+				replyService.writeReply(reply);		
+				
+				r_list = replyService.getReply(reply.getB_idx());
+				request.setAttribute("list", r_list);
+				view = "user/reply-list";
+				break;
+				
+			case "/board-reply-delete.do":
+				idx = request.getParameter("r_idx");
+				replyService = ReplyService.getInstance();
+				reply = replyService.findReply(idx);
+								
+				if(!checkAuthority(request, reply.getU_idx())) {
+					view = "user/access-denied-authority";
+					break;
+				}
+				
+				replyService.deleteReply(idx);
+				
+				r_list = replyService.getReply(reply.getB_idx());
+				request.setAttribute("list", r_list);
+				view = "user/reply-list";
+				break;
+			
+			case "/board-reply-edit.do":
+				idx = request.getParameter("r_idx");
+				replyService = ReplyService.getInstance();
+				reply = replyService.findReply(idx);
+								
+				if(!checkAuthority(request, reply.getU_idx())) {
+					view = "user/access-denied-authority";
+					break;
+				}
+				
+				request.setAttribute("reply", reply);
+				view = "user/reply-edit";
+				break;
+				
+			case "/board-reply-edit-process.do":
+				reply = new Reply();
+				reply.setR_content(request.getParameter("content"));
+				reply.setR_idx(Integer.parseInt(request.getParameter("r_idx")));
+				format = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
+				reply.setR_date(format.format(today));
+				
+				replyService = ReplyService.getInstance();
+				replyService.editReply(reply);				
+				
+				r_list = replyService.getReply(Integer.parseInt(request.getParameter("b_idx")));
+				request.setAttribute("list", r_list);
+				view = "user/reply-list";
+				break;
+				
+			case "/board-add.do":
+				boardService = BoardService.getInstance();
+				board = boardService.findBoard(request.getParameter("b_idx"));
+				request.setAttribute("board", board);
+				view = "user/board-add";
+				break;
+				
+			case "/board-add-result.do":
+				boardService = BoardService.getInstance();
+				board = new Board();
+				board.setB_title(request.getParameter("title"));
+				board.setB_content(request.getParameter("content"));
+				
+				session = request.getSession();
+				user = (User)session.getAttribute("user");
+				board.setB_writer(user.getU_id());
+				board.setU_idx(user.getU_idx());
+				
+				Board board2 = new Board();
+				board2 = boardService.findBoard(request.getParameter("idx"));
+				board.setB_base(board2.getB_base());
+				board.setB_layer(board2.getB_layer()+1);
+				board.setB_order(board2.getB_order());
+				
+				format = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
+				board.setB_date(format.format(today));
+				
+				boardService.addBoard(board);
+				
+				view = "user/board-result";
+				break;
+				
+			case "/board-search.do":
+				String key = request.getParameter("key");
+				boardService = BoardService.getInstance();
+				
+				reqPage = request.getParameter("page");
+				if(reqPage!=null)
+					page=Integer.parseInt(reqPage);
+												
+				b_list = boardService.searchBoard(key, page);
+				
+				pgb = new Pagination_B(page);
+				
+				request.setAttribute("list", b_list);
+				request.setAttribute("pagination", pgb);
+				request.setAttribute("key", key);
+				
+				view = "user/board-search";
+				break;
+				
+			case "/board-delete.do":
+				idx = request.getParameter("b_idx");
+				boardService = BoardService.getInstance();
+				board = boardService.findBoard(idx);
+								
+				if(!checkAuthority(request, board.getU_idx())) {
+					view = "user/access-denied-authority";
+					break;
+				}
+				
+				boardService.deleteBoard(idx);
+				
+				view = "user/board-delete-result";
+				break;
 		}
 		
 		if (view != null) {
@@ -166,14 +410,23 @@ public class Controller extends HttpServlet {
 	String checkSession(HttpServletRequest request, HttpServletResponse response, String command) {
 		HttpSession session = request.getSession();
 		
-		String[] authlist = {
-				"/user-list.do",
+		String[] authlist = {				
 				"/user-insert.do",
 				"/user-insert-process.do",
-				"/user-detail.do",
 				"/user-edit.do",
 				"/user-edit-process.do",
-				"/logout.do"
+				"/user-delete.do",
+				"/logout.do",
+				"/board-write.do",
+				"/board-write-result.do",
+				"/board-add.do",
+				"/board-add-result.do",
+				"/board-edit.do",
+				"/board-edit-process.do",
+				"/board-delete.do",
+				"/board-reply-edit.do",
+				"/board-reply-edit-process.do",
+				"/board-reply-delete.do"
 		};
 		
 		for(String item : authlist) {
@@ -185,6 +438,16 @@ public class Controller extends HttpServlet {
 		}
 		
 		return command;
+	}
+	
+	boolean checkAuthority(HttpServletRequest request, int idx) {
+		HttpSession session = request.getSession();
+		User user = (User)session.getAttribute("user");
+		
+		if(user.getU_idx() != idx) {
+			return false;
+		}
+		return true;
 	}
 }
 

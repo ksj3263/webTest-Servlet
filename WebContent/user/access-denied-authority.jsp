@@ -4,10 +4,14 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>로그인 실패</title>
+<title>권한없음</title>
 </head>
 <body>
-<h1>로그인 실패</h1>
-<a href="user-login.do"><input type="button" value="돌아가기"></a>
+<h1>권한이 없습니다.</h1>
+<script>
+setTimeout(function() {
+	window.location.href = "user-main.do";
+}, 2000);
+</script>
 </body>
 </html>

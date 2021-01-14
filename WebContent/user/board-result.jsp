@@ -4,10 +4,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>로그인 실패</title>
+<title>글쓰기</title>
 </head>
 <body>
-<h1>로그인 실패</h1>
-<a href="user-login.do"><input type="button" value="돌아가기"></a>
+<h1>작성 완료</h1>
+<a href="/webTest/board.do">돌아가기</a>
 </body>
 </html>
