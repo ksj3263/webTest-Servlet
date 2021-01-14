@@ -375,8 +375,9 @@ public class Controller extends HttpServlet {
 					page=Integer.parseInt(reqPage);
 												
 				b_list = boardService.searchBoard(key, page);
+				int searchBoardCount = boardService.getSearchBoardCount(key);
 				
-				pgb = new Pagination_B(page);
+				pgb = new Pagination_B(page, searchBoardCount);
 				
 				request.setAttribute("list", b_list);
 				request.setAttribute("pagination", pgb);

@@ -30,6 +30,17 @@ public class Pagination_B {
 		prevPage=startPage-1;
 		nextPage = (startPage+pageUnit);
 	}
+	
+	public Pagination_B(int page, int boardCount) {
+		this.page = page;
+		startPage = ((page-1)/pageUnit) * pageUnit + 1;
+		this.boardCount = boardCount;		
+		lastPage = (int)Math.ceil(boardCount / (float)perPage);
+		endPage = startPage + pageUnit-1;
+		endPage = endPage < lastPage ? endPage : lastPage;
+		prevPage=startPage-1;
+		nextPage = (startPage+pageUnit);
+	}
 
 	public int getPage() {
 		return page;

@@ -314,6 +314,37 @@ public class BoardDAO {
 		return count;
 	}
 	
+	public int getSearchBoardCount(String key) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		int count = 0;
+		
+		try {
+			conn = DBConnection.getConnection();
+			String query = "select count(*) count from board where b_title like ?";
+			pstmt = conn.prepareStatement(query);
+			pstmt.setString(1, "%" + key + "%");
+			rs = pstmt.executeQuery();
+			
+			while(rs.next()) {
+				count = rs.getInt("count");
+			}
+		} catch(Exception e) {
+			
+		} finally {
+			try {
+				if(rs!=null) rs.close();
+				if(pstmt!=null) pstmt.close();
+				if(conn!=null) conn.close();
+			} catch(SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return count;
+	}
+	
 	public void deleteBoard(String idx) {
 		Connection conn = null;
 		PreparedStatement pstmt = null;

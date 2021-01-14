@@ -42,6 +42,10 @@ public class BoardService {
 		return dao.getBoardCount();
 	}
 	
+	public int getSearchBoardCount(String key) {
+		return dao.getSearchBoardCount(key);
+	}
+	
 	public void addBoard(Board board) {
 		dao.addBoard(board);
 	}
