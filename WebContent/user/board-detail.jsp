@@ -22,7 +22,7 @@
 		text-align:center;
 	}
 </style>
-<body>
+<body id="body">
 <p>제목 : ${board.b_title }</p>
 <p>내용 : ${board.b_content }</p>
 <p>날짜 : ${board.b_date }</p>
@@ -91,8 +91,16 @@ $(document).on('click', '.btn-edit', function() {
 		dateType: "html"
 	})
 	.done(function(data) {
-		console.log("ok");
-		td.eq(1).html(data);
+		console.log(data);
+		if(data == 'false') {
+			console.log("false");
+			$("#body").html('<h1>권한이 없습니다.</h1>');
+			setTimeout(function() {
+				window.location.href = "user-main.do";
+			}, 2000);
+		} else {
+			td.eq(1).html(data);			
+		}
 	});
 });
 
@@ -125,8 +133,16 @@ $(document).on('click', '.btn-del', function () {
 		  dateType: "html"
 		})
 		.done(function(data) {
-	 		console.log("ok");
-	 		$("#replyList").html(data);
+			console.log(data);
+			if(data == 'false') {
+				console.log("false");
+				$("#body").html('<h1>권한이 없습니다.</h1>');
+				setTimeout(function() {
+					window.location.href = "user-main.do";
+				}, 2000);
+			} else {
+		 		$("#replyList").html(data);			
+			}
 		});
 });
 </script>

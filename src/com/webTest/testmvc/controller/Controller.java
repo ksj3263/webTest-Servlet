@@ -294,7 +294,7 @@ public class Controller extends HttpServlet {
 				reply = replyService.findReply(idx);
 								
 				if(!checkAuthority(request, reply.getU_idx())) {
-					view = "user/access-denied-authority";
+					view = "user/false";
 					break;
 				}
 				
@@ -311,7 +311,7 @@ public class Controller extends HttpServlet {
 				reply = replyService.findReply(idx);
 								
 				if(!checkAuthority(request, reply.getU_idx())) {
-					view = "user/access-denied-authority";
+					view = "user/false";
 					break;
 				}
 				
